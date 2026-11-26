@@ -1,36 +1,99 @@
-# M = number of paths
-# N =  T /h (number of steps, where h is the step size)
+# Simulation for finance assignment
 
-# Write a function SVMil which takes as input M (as above) and N (as above), and outputs
-# an (N + 1) × M matrix in which each column is a simulated path of the stock price process
-# {St : t ≥ 0} in the market described above using the Milstein scheme. Explain and justify
-# any corrections or adjustments you make to the standard Milstein scheme.
-N <- 10
-M <- 5
-
-S_0 <- 110
-V_0 <- 0.3
+# Defining all variables
+S0 <- 110
+V0 <- 0.3
 r <- 0.04
 xi <- 0.5
 theta <- 0.06
-kappa <- 1.8
+kappa <- 0.8
 rho <- -0.2
+
+BU <- 130
+
 maturity <- 2
-h <- maturity / N
 
 # Brownian motion function
-BM <- function(rho, h, M = 1) {
+BM <- function(rho, maturity, N) {
+  # Define step size
+  h <- maturity / N
   # Generate 2 vectors of standard normal random variables
   Z1 <- rnorm(M)
   Z2 <- rnorm(M)
-  # Correlated Brownian increments
+  # Correlated Brownian motions
   W_v <- sqrt(h) * Z1
   W_s <- sqrt(h) * (rho * Z1 + sqrt(1 - rho^2) * Z2)
   # Return brownian motions
   list(W_v = W_v, W_s = W_s)
 }
 
-# Milstein function
-SVMil <- function(M, N) {
-  #stuff
+# Euler-Maruyama scheme
+# Defining SVEM function to calculate V_t and then S_t within itself.
+SVEM <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
+  h <- maturity / N
+  t <- seq(0, maturity, by = h)
+
+  # Create S and V to calculate concurrently, since the V_t value is needed to
+  # Calculate the S_t value
+  S_mat <- matrix(NA, nrow = N+1, ncol = M)
+  V_mat <- matrix(NA, nrow = N+1, ncol = M)
+
+  S_mat[1, ] <- S0
+  V_mat[1, ] <- V0
+
+  # Correlated Brownian motions
+  dW <- BM(rho, maturity, N)
+  dWv <- matrix(dW$W_v, nrow = N, ncol = M)
+  dWs <- matrix(dW$W_s, nrow = N, ncol = M)
+
+  for (i in 1:N) {
+    
+    V_i <- V_mat[i, ]
+    S_i <- S_mat[i, ]
+
+    V_mat[i+1, ] <- V_i + kappa * (theta - V_i) * h + xi * (V_i^2) * dWv[i, ]
+
+    S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_i) * S_i * dWs[i, ]
+
+  }
+  return(S_mat)
+
+}
+
+test_N_a_i <- 20
+test_M_a_i <- 20
+test_sample_a_i <- SVEM(S0, V0, r, xi, theta, kappa, rho, test_M_a_i, test_N_a_i)
+
+# Milstein scheme function
+SVMil <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
+  h <- maturity / N
+  t <- seq(0, maturity, by = h)
+
+  #Create S and V to calculate concurrently, since the V_t value is needed to
+  #calculate the S_t value
+  S_mat <- matrix(NA, nrow = N+1, ncol = M)
+  V_mat <- matrix(NA, nrow = N+1, ncol = M)
+
+  S_mat[1, ] <- S0
+  V_mat[1, ] <- V0
+
+  # Correlated Brownian motions
+  dW <- BM(rho, maturity, N)
+  dWv <- matrix(dW$W_v, nrow = N, ncol = M)
+  dWs <- matrix(dW$W_s, nrow = N, ncol = M)
+
+  for (i in 1:N) {
+    
+    V_i <- V_mat[i, ]
+    S_i <- S_mat[i, ]
+
+# Milstein addition to V
+V_mat[i+1, ] <- V_i + kappa * (theta - V_i) * h + xi * (V_i^2) * dWv[i, ] + xi^2 * (V_i^3) * (dWv[i, ]^2 - h)
+
+# Milstein addition to S
+S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_pos) * S_i * dWs[i, ] + 0.5 * V_i * S_i * (dWs[i, ]^2 - h)
+
+  }
+  return(S_mat)
+
 }
