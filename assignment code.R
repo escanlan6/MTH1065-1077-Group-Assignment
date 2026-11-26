@@ -14,7 +14,7 @@ BU <- 130
 maturity <- 2
 
 # Brownian motion function
-BM <- function(rho, maturity, N) {
+BM <- function(rho, maturity, N, M) {
   # Define step size
   h <- maturity / N
   # Generate 2 vectors of standard normal random variables
@@ -42,7 +42,7 @@ SVEM <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
   V_mat[1, ] <- V0
 
   # Correlated Brownian motions
-  dW <- BM(rho, maturity, N)
+  dW <- BM(rho, maturity, N, M)
   dWv <- matrix(dW$W_v, nrow = N, ncol = M)
   dWs <- matrix(dW$W_s, nrow = N, ncol = M)
 
@@ -51,9 +51,12 @@ SVEM <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
     V_i <- V_mat[i, ]
     S_i <- S_mat[i, ]
 
+    # V_pos is V_i if V_i is non-negative, and is 0 if negative
+    V_pos <- max(V_i, 0)
+
     V_mat[i+1, ] <- V_i + kappa * (theta - V_i) * h + xi * (V_i^2) * dWv[i, ]
 
-    S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_i) * S_i * dWs[i, ]
+    S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_pos) * S_i * dWs[i, ]
 
   }
   return(S_mat)
@@ -63,6 +66,9 @@ SVEM <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
 test_N_a_i <- 20
 test_M_a_i <- 20
 test_sample_a_i <- SVEM(S0, V0, r, xi, theta, kappa, rho, test_M_a_i, test_N_a_i)
+
+#Adjustments to Euler-Maruyama function: since sqrt(V_t) is not defined for V_t<0
+#for the calculation of S_t, sqrt(max(V_t, 0)) is used instead.
 
 # Milstein scheme function
 SVMil <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
@@ -97,3 +103,21 @@ SVMil <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
   return(S_mat)
 
 }
+
+
+# (b) (i)
+
+#Defining a payoff function for Up-and-out put
+payoff <- function(S_t) {
+  M_T <- max(S_t)
+  N <- length(S_t)
+  if (M_T < BU){
+  pay <- max((K - S_t[N]), 0) }
+  else {pay <- 0}
+  return(pay)
+}
+
+# Sample size sets for N and M
+num_steps <- c(5, 10, 100, 1000)
+num_samples <- c(10, 100, 1000, 500, 10000)
+
