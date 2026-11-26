@@ -87,11 +87,11 @@ SVMil <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
     V_i <- V_mat[i, ]
     S_i <- S_mat[i, ]
 
-# Milstein addition to V
-V_mat[i+1, ] <- V_i + kappa * (theta - V_i) * h + xi * (V_i^2) * dWv[i, ] + xi^2 * (V_i^3) * (dWv[i, ]^2 - h)
+    # Milstein addition to V
+    V_mat[i+1, ] <- V_i + kappa * (theta - V_i) * h + xi * (V_i^2) * dWv[i, ] + xi^2 * (V_i^3) * (dWv[i, ]^2 - h)
 
-# Milstein addition to S
-S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_pos) * S_i * dWs[i, ] + 0.5 * V_i * S_i * (dWs[i, ]^2 - h)
+    # Milstein addition to S
+    S_mat[i+1, ] <- S_i + r * S_i * h + sqrt(V_pos) * S_i * dWs[i, ] + 0.5 * V_i * S_i * (dWs[i, ]^2 - h)
 
   }
   return(S_mat)
