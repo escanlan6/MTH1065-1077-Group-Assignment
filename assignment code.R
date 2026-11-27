@@ -174,7 +174,7 @@ payoff_mat <- function(S_t, K, BU, r, maturity) {
   M_T <- apply(S_t, 2, max)
   S_T <- S_t[nrow(S_t), ]
   if (M_T < BU) {
-    pay <- exp(-r * maturity) * pmax(K - S_t, 0)
+    pay <- exp(-r * maturity) * pmax(K - S_T, 0)
   }
   return(pay)
 }
@@ -188,8 +188,8 @@ N_c <- 1000
 mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 
-payoff_c_EM <- payoff_mat(mat_c_EM)
-payoff_c_Mil <- payoff_mat(mat_c_Mil)
+payoff_c_EM <- payoff_mat(mat_c_EM, K, BU, r, maturity)
+payoff_c_Mil <- payoff_mat(mat_c_Mil, K, BU, r, maturity)
 
 avg_price_c_EM <- mean(payoff_c_EM)
 avg_price_c_Mil <- mean(payoff_c_Mil)
@@ -220,7 +220,6 @@ print(mc_bc_compare)
 # CI = mean +- z_alpha * sd/sqrt(n)
 
 
-#PAYOFF FUNCTION DISCOUNTED??
 
 se_EM <- sd(payoff_c_EM) / sqrt(M_c)
 se_Mil <- sd(payoff_c_Mil) / sqrt(M_c)
@@ -229,8 +228,8 @@ z <- qnorm(0.975)
 CI_EM <- c(avg_price_c_EM - z*se_EM, avg_price_c_EM + z*se_EM)
 CI_Mil <- c(avg_price_c_Mil - z*se_Mil, avg_price_c_Mil + z*se_Mil)
 
-cat("Confidence interval for the Euler-Maruyama approach is [", CI_EM[1], ", ", CI_EM[2], "]")
-cat("Confidence interval for the Milstein approach is [", CI_Mil[1], ", ", CI_Mil[2], "]")
+cat("Confidence interval for the Euler-Maruyama approach is [", CI_EM[1], ", ", CI_EM[2], "]\n")
+cat("Confidence interval for the Milstein approach is [", CI_Mil[1], ", ", CI_Mil[2], "]\n")
 
 
 
@@ -246,8 +245,8 @@ Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M0, N)
 S_T_EM <- EM[nrow(EM), ]
 S_T_Mil <- Mil[nrow(Mil), ]
 
-Y_EM <- payoff_mat(EM)
-Y_Mil <- payoff_mat(Mil)
+Y_EM <- payoff_mat(EM, K, BU, r, maturity)
+Y_Mil <- payoff_mat(Mil, K, BU, r, maturity)
 
 # Estimated optimal control coefficient: b* = Cov(Y, S_T) / Var(S_T)
 b_star_EM <- cov(Y_EM, S_T_EM) / var(S_T_EM)
