@@ -169,7 +169,10 @@ d2 = d1 - sqrt(theta) * sqrt(maturity)
 put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
 put
 
+#Comment about b (ii) vs b (i)
 
+
+# Payoff function for parts (c) & (d)
 payoff_mat <- function(S_t, K = 110, BU = 130, r = 0.04, maturity = 2) {
   M_T <- apply(S_t, 2, max)
   S_T <- S_t[nrow(S_t), ]
@@ -186,8 +189,8 @@ N_c <- 1000
 mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 
-payoff_c_EM <- payoff_mat(mat_c_EM)
-payoff_c_Mil <- payoff_mat(mat_c_Mil)
+payoff_c_EM <- payoff_mat(mat_c_EM, K, BU, r, maturity)
+payoff_c_Mil <- payoff_mat(mat_c_Mil, K, BU, r, maturity)
 
 avg_price_c_EM <- mean(payoff_c_EM)
 avg_price_c_Mil <- mean(payoff_c_Mil)
@@ -218,7 +221,7 @@ print(mc_bc_compare)
 # CI = mean +- z_alpha * sd/sqrt(n)
 
 
-#PAYOFF FUNCTION DISCOUNTED??
+# PAYOFF FUNCTION DISCOUNTED??
 
 se_EM <- sd(payoff_c_EM) / sqrt(M_c)
 se_Mil <- sd(payoff_c_Mil) / sqrt(M_c)
@@ -244,8 +247,8 @@ Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M0, N)
 S_T_EM <- EM[nrow(EM), ]
 S_T_Mil <- Mil[nrow(Mil), ]
 
-Y_EM <- payoff_mat(EM)
-Y_Mil <- payoff_mat(Mil)
+Y_EM <- payoff_mat(EM, K, BU, r, maturity)
+Y_Mil <- payoff_mat(Mil, K, BU, r, maturity)
 
 # Estimated optimal control coefficient: b* = Cov(Y, S_T) / Var(S_T)
 b_star_EM <- cov(Y_EM, S_T_EM) / var(S_T_EM)
