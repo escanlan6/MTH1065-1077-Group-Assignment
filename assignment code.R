@@ -169,13 +169,10 @@ d2 = d1 - sqrt(theta) * sqrt(maturity)
 put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
 put
 
-
+# Payoff function defined for part (c) and (d)
 payoff_mat <- function(S_t, K = 110, BU = 130, r = 0.04, maturity = 2) {
   M_T <- apply(S_t, 2, max)
   S_T <- S_t[nrow(S_t), ]
-  if (M_T < BU) {
-    pay <- exp(-r * maturity) * pmax(K - S_T, 0)
-  }
   pay <- exp(-r * maturity) * pmax(K - S_T, 0) * as.numeric(M_T < BU)
   return(pay)
 }
