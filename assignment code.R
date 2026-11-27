@@ -175,17 +175,20 @@ put
 M_c <- 10000
 N_c <- 1000
 
+#Matrices of M paths of length N+1 using EM and Mil
 mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 
-install.packages("matrixStats")
-library(matrixStats)
+#install.packages("matrixStats")
+#library(matrixStats)
 
+#Payoff function defined for Up-and-out put
 payoff_mat <- function(S_t) {
   M <- ncol(S_t)
   N <- nrow(S_t)
   pay <- numeric(M)
-  M_T <- colMaxs(S_t)
+  M_T <- apply(S_t, 2, max)
+  
   for (i in 1:M){
     if (M_T[i] < BU) {
       pay[i] <- max((K - S_t[N, i]), 0)
@@ -197,5 +200,27 @@ payoff_mat <- function(S_t) {
 payoff_c_EM <- payoff_mat(mat_c_EM)
 payoff_c_Mil <- payoff_mat(mat_c_Mil)
 
-avg_price_c_EM <- mean(payoff_c_EM)
-avg_price_c_Mil <- mean(payoff_c_Mil)
+avg_price_c_EM <- exp(- r * maturity) * mean(payoff_c_EM)
+avg_price_c_Mil <- exp(- r * maturity) * mean(payoff_c_Mil)
+
+results_c_i <- as.data.frame(c(avg_price_c_EM, avg_price_c_Mil))
+colnames(results_c_i) <- c("Monte Carlo Price Estimation")
+rownames(results_c_i) <- c("Euler-Maruyama", "Milstein")
+
+print(results_c_i)
+
+#The average result reflects a large quantity of zeroes and several more higher
+#values, since the Monte Carlo estimation is done with a mean, this reduces the
+#final result.
+
+results_b_i <- c(mc_results_EM[4,5], mc_results_Mil[4,5])
+vec_c_i <- c(avg_price_c_EM, avg_price_c_Mil)
+mc_bc_compare <- as.data.frame(matrix(data = c(vec_c_i, results_b_i), nrow = 2, ncol = 2, byrow=FALSE))
+colnames(mc_bc_compare) <- c("Up-and-out put", "Conventional put")
+rownames(mc_bc_compare) <- c("Euler-Maruyama", "Milstein")
+print(mc_bc_compare)
+
+# The average result from the Up-and-out put is significantly lower because more zeros
+# occur in the dataset due to the indicator function (1_{M_T < B_U})
+
+# (c) (ii)
