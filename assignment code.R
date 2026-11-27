@@ -170,12 +170,13 @@ put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
 put
 
 
-payoff_mat <- function(S_t, K, BU, r, maturity) {
+payoff_mat <- function(S_t, K = 110, BU = 130, r = 0.04, maturity = 2) {
   M_T <- apply(S_t, 2, max)
   S_T <- S_t[nrow(S_t), ]
   if (M_T < BU) {
     pay <- exp(-r * maturity) * pmax(K - S_T, 0)
   }
+  pay <- exp(-r * maturity) * pmax(K - S_T, 0) * as.numeric(M_T < BU)
   return(pay)
 }
 
@@ -254,4 +255,6 @@ b_star_Mil <- cov(Y_Mil, S_T_Mil) / var(S_T_Mil)
 
 b_star_EM
 b_star_Mil
+
+# (d) (ii)
 
