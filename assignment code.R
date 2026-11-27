@@ -170,38 +170,29 @@ put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
 put
 
 
-#(c) 
-
-M_c <- 10000
-N_c <- 1000
-
-#Matrices of M paths of length N+1 using EM and Mil
-mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
-mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
-
-#install.packages("matrixStats")
-#library(matrixStats)
-
-#Payoff function defined for Up-and-out put
-payoff_mat <- function(S_t) {
-  M <- ncol(S_t)
-  N <- nrow(S_t)
-  pay <- numeric(M)
+payoff_mat <- function(S_t, K, BU, r, maturity) {
   M_T <- apply(S_t, 2, max)
-  
-  for (i in 1:M){
-    if (M_T[i] < BU) {
-      pay[i] <- max((K - S_t[N, i]), 0)
-    }
+  S_T <- S_t[nrow(S_t), ]
+  if (M_T < BU) {
+    pay <- exp(-r * maturity) * pmax(K - S_t, 0)
   }
   return(pay)
 }
 
+# (c) (i)
+
+M_c <- 10000
+N_c <- 1000
+
+# Matrices of M paths of length N+1 using EM and Mil
+mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
+mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
+
 payoff_c_EM <- payoff_mat(mat_c_EM)
 payoff_c_Mil <- payoff_mat(mat_c_Mil)
 
-avg_price_c_EM <- exp(- r * maturity) * mean(payoff_c_EM)
-avg_price_c_Mil <- exp(- r * maturity) * mean(payoff_c_Mil)
+avg_price_c_EM <- mean(payoff_c_EM)
+avg_price_c_Mil <- mean(payoff_c_Mil)
 
 results_c_i <- as.data.frame(c(avg_price_c_EM, avg_price_c_Mil))
 colnames(results_c_i) <- c("Monte Carlo Price Estimation")
@@ -209,9 +200,9 @@ rownames(results_c_i) <- c("Euler-Maruyama", "Milstein")
 
 print(results_c_i)
 
-#The average result reflects a large quantity of zeroes and several more higher
-#values, since the Monte Carlo estimation is done with a mean, this reduces the
-#final result.
+# The average result reflects a large quantity of zeroes and several more higher
+# values, since the Monte Carlo estimation is done with a mean, this reduces the
+# final result.
 
 results_b_i <- c(mc_results_EM[4,5], mc_results_Mil[4,5])
 vec_c_i <- c(avg_price_c_EM, avg_price_c_Mil)
@@ -240,3 +231,28 @@ CI_Mil <- c(avg_price_c_Mil - z*se_Mil, avg_price_c_Mil + z*se_Mil)
 
 cat("Confidence interval for the Euler-Maruyama approach is [", CI_EM[1], ", ", CI_EM[2], "]")
 cat("Confidence interval for the Milstein approach is [", CI_Mil[1], ", ", CI_Mil[2], "]")
+
+
+
+# (d) (i)
+
+# Sample size sets for N and M
+N <- 1000
+M0 <- 5000
+
+EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M0, N)
+Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M0, N)
+
+S_T_EM <- EM[nrow(EM), ]
+S_T_Mil <- Mil[nrow(Mil), ]
+
+Y_EM <- payoff_mat(EM)
+Y_Mil <- payoff_mat(Mil)
+
+# Estimated optimal control coefficient: b* = Cov(Y, S_T) / Var(S_T)
+b_star_EM <- cov(Y_EM, S_T_EM) / var(S_T_EM)
+b_star_Mil <- cov(Y_Mil, S_T_Mil) / var(S_T_Mil)
+
+b_star_EM
+b_star_Mil
+
