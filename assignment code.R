@@ -161,7 +161,7 @@ print(mc_results_Mil)
 
 # (b) (ii)
 
-# Black-Scholes version calculation (sqrt(V_i) = sigma => sqrt(theta))
+# Black-Scholes version calculation (sigma = sqrt(V_i) = sqrt(theta))
 d1 = (log(S0/K) + maturity * (r + theta / 2)) / (sqrt(theta) * sqrt(maturity))
 d2 = d1 - sqrt(theta) * sqrt(maturity)
 # European Put option in the Black-Scholes market
