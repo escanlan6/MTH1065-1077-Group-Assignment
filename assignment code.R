@@ -1,5 +1,6 @@
 # Simulation for finance assignment
 
+
 # Defining all variables
 S0 <- 110
 V0 <- 0.3
@@ -20,8 +21,8 @@ BM <- function(rho, maturity, N, M) {
   # Define step size
   h <- maturity / N
   # Generate 2 vectors of standard normal random variables
-  Z1 <- rnorm(M)
-  Z2 <- rnorm(M)
+  Z1 <- rnorm(N*M)
+  Z2 <- rnorm(N*M)
   # Correlated Brownian motions
   W_v <- sqrt(h) * Z1
   W_s <- sqrt(h) * (rho * Z1 + sqrt(1 - rho^2) * Z2)
@@ -167,3 +168,34 @@ d2 = d1 - sqrt(theta) * sqrt(maturity)
 # European Put option in the Black-Scholes market
 put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
 put
+
+
+#(c) 
+
+M_c <- 10000
+N_c <- 1000
+
+mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
+mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
+
+install.packages("matrixStats")
+library(matrixStats)
+
+payoff_mat <- function(S_t) {
+  M <- ncol(S_t)
+  N <- nrow(S_t)
+  pay <- numeric(M)
+  M_T <- colMaxs(S_t)
+  for (i in 1:M){
+    if (M_T[i] < BU) {
+      pay[i] <- max((K - S_t[N, i]), 0)
+    }
+  }
+  return(pay)
+}
+
+payoff_c_EM <- payoff_mat(mat_c_EM)
+payoff_c_Mil <- payoff_mat(mat_c_Mil)
+
+avg_price_c_EM <- mean(payoff_c_EM)
+avg_price_c_Mil <- mean(payoff_c_Mil)
