@@ -224,3 +224,19 @@ print(mc_bc_compare)
 # occur in the dataset due to the indicator function (1_{M_T < B_U})
 
 # (c) (ii)
+
+# Standard Error: se = sd / sqrt(n)
+# CI = mean +- z_alpha * sd/sqrt(n)
+
+
+#PAYOFF FUNCTION DISCOUNTED??
+
+se_EM <- sd(payoff_c_EM) / sqrt(M_c)
+se_Mil <- sd(payoff_c_Mil) / sqrt(M_c)
+z <- qnorm(0.975)
+
+CI_EM <- c(avg_price_c_EM - z*se_EM, avg_price_c_EM + z*se_EM)
+CI_Mil <- c(avg_price_c_Mil - z*se_Mil, avg_price_c_Mil + z*se_Mil)
+
+cat("Confidence interval for the Euler-Maruyama approach is [", CI_EM[1], ", ", CI_EM[2], "]")
+cat("Confidence interval for the Milstein approach is [", CI_Mil[1], ", ", CI_Mil[2], "]")
