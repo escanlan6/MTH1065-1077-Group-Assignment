@@ -178,18 +178,11 @@ N_c <- 1000
 mat_c_EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 mat_c_Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M_c, N_c)
 
-install.packages("matrixStats")
-library(matrixStats)
-
-payoff_mat <- function(S_t) {
-  M <- ncol(S_t)
-  N <- nrow(S_t)
-  pay <- numeric(M)
-  M_T <- colMaxs(S_t)
-  for (i in 1:M){
-    if (M_T[i] < BU) {
-      pay[i] <- max((K - S_t[N, i]), 0)
-    }
+payoff_mat <- function(S_t, K, BU, r, maturity) {
+  M_T <- apply(S_t, 2, max)
+  S_T <- S_t[nrow(S_t), ]
+  if (M_T < BU) {
+    pay <- exp(-r * maturity) * pmax(K - S_t, 0)
   }
   return(pay)
 }
@@ -199,3 +192,27 @@ payoff_c_Mil <- payoff_mat(mat_c_Mil)
 
 avg_price_c_EM <- mean(payoff_c_EM)
 avg_price_c_Mil <- mean(payoff_c_Mil)
+
+# # (d)
+
+# Sample size sets for N and M
+N <- 1000
+M0 <- 5000
+
+EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M0, N)
+Mil <- SVMil(S0, V0, r, xi, theta, kappa, rho, M0, N)
+
+S_T_EM <- EM[nrow(EM), ]
+S_T_Mil <- Mil[nrow(Mil), ]
+
+# Discounted payoffs
+Y_EM <- payoff_mat(EM)
+Y_Mil <- payoff_mat(Mil)
+
+# Estimated optimal control coefficient: b* = Cov(Y, S_T) / Var(S_T)
+b_star_EM <- cov(Y_EM, S_T_EM) / var(S_T_EM)
+b_star_Mil <- cov(Y_Mil, S_T_Mil) / var(S_T_Mil)
+
+b_star_EM
+b_star_Mil
+
