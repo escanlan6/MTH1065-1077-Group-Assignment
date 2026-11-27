@@ -27,6 +27,7 @@ BM <- function(rho, maturity, N, M) {
   W_s <- sqrt(h) * (rho * Z1 + sqrt(1 - rho^2) * Z2)
   # Return brownian motions
   list(W_v = W_v, W_s = W_s)
+
 }
 
 # Euler-Maruyama scheme
@@ -69,8 +70,8 @@ test_N_a_i <- 20
 test_M_a_i <- 20
 test_sample_a_i <- SVEM(S0, V0, r, xi, theta, kappa, rho, test_M_a_i, test_N_a_i)
 
-#Adjustments to Euler-Maruyama function: since sqrt(V_t) is not defined for V_t<0
-#for the calculation of S_t, sqrt(max(V_t, 0)) is used instead.
+# Adjustments to Euler-Maruyama function: since sqrt(V_t) is not defined for V_t<0
+# For the calculation of S_t, sqrt(max(V_t, 0)) is used instead.
 
 # Milstein scheme function
 SVMil <- function(S0, V0, r, xi, theta, kappa, rho, M, N) {
@@ -122,7 +123,6 @@ mc_mat_EM <- matrix(data=NA, nrow = len_n, ncol = len_m)
 mc_mat_Mil <- matrix(data=NA, nrow = len_n, ncol = len_m)
 
 
-
 for (i in 1:len_n){
   for (j in 1:len_m) {
     EM <- SVEM(S0, V0, r, xi, theta, kappa, rho, M_list[j], N_list[i])
@@ -134,14 +134,14 @@ for (i in 1:len_n){
     p_EM <- pmax(K - S_T_EM, 0)
     p_Mil <- pmax(K - S_T_Mil, 0)
     
-    #Discounted payoff:
+    # Discounted payoff:
     mc_mat_EM[i, j] <- exp(-r * maturity) * mean(p_EM)
     mc_mat_Mil[i, j] <- exp(-r * maturity) * mean(p_Mil)
 
   }
 }
 
-#
+# Making data frame of results for cleaner tabulation
 mc_results_EM <- as.data.frame(mc_mat_EM)
 rownames(mc_results_EM) <- c("5 steps", "10 steps", "100 steps", "1000 steps")
 colnames(mc_results_EM) <- c("10 paths", "100 paths", "1000 paths", "5000 paths", "10000 paths")
@@ -153,8 +153,17 @@ colnames(mc_results_Mil) <- c("10 paths", "100 paths", "1000 paths", "5000 paths
 print(mc_results_EM)
 print(mc_results_Mil)
 
-#There is a higher prevalence of results = 0 for the 10 paths, particularly in the
-#Euler-Maruyama scheme
+# There is a higher prevalence of results = 0 for the 10 paths, particularly in the
+# Euler-Maruyama scheme
 
-#There is overall agreement of results from 21-27 in both methods at the larger sample sizes.
+# There is overall agreement of results from 21-27 in both methods at the larger sample sizes.
 
+
+# (b) (ii)
+
+# Black-Scholes version calculation (sqrt(V_i) = sigma => sqrt(theta))
+d1 = (log(S0/K) + maturity * (r + theta / 2)) / (sqrt(theta) * sqrt(maturity))
+d2 = d1 - sqrt(theta) * sqrt(maturity)
+# European Put option in the Black-Scholes market
+put = pnorm(-d2) * K *exp(-r * maturity) - pnorm(-d1) * S0
+put
